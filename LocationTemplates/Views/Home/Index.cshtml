@@ -1,0 +1,129 @@
+﻿@model LocationTemplates.Models.LocationViewModel
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Example</h2>
+<section>
+    <div class="row">
+        @Html.LabelFor(m => m.State)
+        @Html.EditorFor(m => m.State)
+    </div>
+    <div class="row">
+        @Html.LabelFor(m => m.Country)
+        @Html.EditorFor(m => m.Country)
+    </div>
+</section>
+<hr />
+<h2>About</h2>
+<p>
+    Location Templates makes use of the MVC Editor Templates, which provides a convenient way of turning a list of states
+    or countries into reusable drop down lists.
+</p>
+<h2>Data</h2>
+<p>
+    The Data folder contains two lists <code>(/Data/StateList.cs, /Data/CountryList.cs)</code> for states and countries that were found on stackoverflow. You could easily
+    use a different data source. The list of states contains an abbreviation field, used as the select list value, and a name field, used as the select list text. The country
+    list has more values (Name, Alpha2Code, Alpha3Code, NumericCode, Enabled). In this example I am using the Alpha3Code as the select list value and the Name as the
+    select list text.
+</p>
+<h2>Model</h2>
+The view model located at <code>/Models/LocationViewModel.cs</code> contains two properties
+<pre><code>
+        [UIHint("States")]
+        public string State { get; set; }
+        [UIHint("Countries")]
+        public string Country { get; set; }
+</code></pre>
+<p>
+    The <code>UIHint</code> attribute needs to match the names of the Editor Templates that will be used.
+</p>
+<h2>Editor Templates</h2>
+<p>
+    The editor templates can be found in the <code>/Views/Shared/EditorTemplates</code> folder. 
+<pre><code>
+    <b>States.cshtml</b>
+    @@using LocationTemplates.Helpers;
+
+    @@model string
+
+    @@{
+        var items = StatesHelper.GetStates(Model);
+    }
+
+    @@Html.DropDownList("", items, new { @@class = "form-control"})    
+</code></pre>
+</p>
+<p>
+    The template calls a Helper method to get the list of states. The returned list is stored in the variable
+    <b>items</b>, which is then supplied to the drop down list html helper and finally rendered on the page.
+    The Countries.cshtml template is identical except it calls the CountriesHelper.GetCountries method. <b>Notice</b> both templates
+    accept a string object as the @@model parameter. This is useful when you want to display a selected state
+    or country returned by your model in the drop down list.
+</p>
+<h2>Helpers</h2>
+<p>
+    The helper classes <code>/Helpers/CountryHelpers.cs</code> and <code>/Helpers/StateHelpers.cs</code> are called
+    within the editor templates and return an IEnumerable list of states or countries. The helpers essentially turn
+    the lists of data into a SelectList that will work with the drop down lists.
+<pre><code>
+public class CountryHelpers
+    {
+        public static IEnumerable&lt;SelectListItem&gt;GetCountries(string selectedValue)
+        {
+            var countries = new CountryArray();
+            var list = countries.countries
+                .ToList()
+                .Select(m => new SelectListItem
+                {
+                    Value = m.Alpha3Code.ToString(),
+                    Text = m.Name.ToString(),
+                    Selected = (m.Alpha3Code == selectedValue)
+                });
+
+            return list;
+        }
+    }    
+</code></pre>
+</p>
+<p>
+    <b>Notice:</b> if you provide a selected value from your model it will appear selected in the returned
+    list of items. In the case of countries, should you use the provided data, you could use a different value
+    such as Alpha2Code or NumericCode for the value. There is also another parameter in the countries list <code>enabled</code>.
+    This is useful if you just want to show countries in a particular region like North America. In that case you would
+    set the value for countries in North America as true and leave the rest as false. Then alter your LINQ statement 
+    above with a where clause.
+<pre><code>
+         var list = countries.countries
+                .ToList()
+                <b>.Where(m => m.Enabled == true)</b>
+                .Select(m => new SelectListItem
+                {
+                    Value = m.Alpha3Code.ToString(),
+                    Text = m.Name.ToString(),
+                    Selected = (m.Alpha3Code == selectedValue)
+                });
+</code></pre>
+</p>
+<h2>View</h2>
+<p>
+    Now anywhere in your views where you need to show a drop down list for states or countries you can 
+    use the editor templates. For example:
+<pre><code>
+@@model LocationTemplates.Models.LocationViewModel
+&lt;section&gt;
+    &lt;div class="row"&gt;
+        @@Html.LabelFor(m => m.State)
+        @@Html.EditorFor(m => m.State)
+    &lt;/div&gt;
+    &lt;div class="row"&gt;
+        @@Html.LabelFor(m => m.Country)
+        @@Html.EditorFor(m => m.Country)
+    &lt;/div&gt;
+&lt;/section&gt;
+</code></pre>
+</p>
+<h2>
+    Enjoy!
+</h2>

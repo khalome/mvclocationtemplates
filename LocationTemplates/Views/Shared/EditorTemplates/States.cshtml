@@ -1,0 +1,9 @@
+﻿@using LocationTemplates.Helpers;
+
+@model string
+
+@{
+    var items = StatesHelper.GetStates(Model);
+}
+
+@Html.DropDownList("", items, new { @class = "form-control"})
